@@ -5,17 +5,13 @@ import random
 
 
 pygame.init()
-size = width, height = 600, 600
+size = WIDTH, HEIGHT = 600, 600
 screen = pygame.display.set_mode(size)
 pygame.display.set_caption('Змейка')
-snake_sprites = pygame.sprite.Group()
-all_sprites = pygame.sprite.Group()
-ball_sprites = pygame.sprite.Group()
-horizontal_borders = pygame.sprite.Group()
-vertical_borders = pygame.sprite.Group()
 clock = pygame.time.Clock()
-SPEED = 10
+SPEED = 16
 SCORE = 0
+FPS = 10
 
 
 def terminate():
@@ -23,73 +19,65 @@ def terminate():
     sys.exit()
 
 
-class Border(pygame.sprite.Sprite):
-    def __init__(self, x1, y1, x2, y2):
-        super().__init__(all_sprites)
-        if x1 == x2:
-            self.add(vertical_borders)
-            self.image = pygame.Surface([1, y2 - y1])
-            self.rect = pygame.Rect(x1, y1, 1, y2 - y1)
-        else:
-            self.add(horizontal_borders)
-            self.image = pygame.Surface([x2 - x1, 1])
-            self.rect = pygame.Rect(x1, y1, x2 - x1, 1)
-
-
-class Ball(pygame.sprite.Sprite):
+class Ball:
     def __init__(self):
-        super().__init__(all_sprites, ball_sprites)
         self.radius = 7
-        self.image = pygame.Surface((2 * self.radius, 2 * self.radius),
-                                    pygame.SRCALPHA, 32)
-        self.x = random.randrange(7, width - 7)
-        self.y = random.randrange(7, height - 7)
-        pygame.draw.circle(self.image, pygame.Color("red"),
-                           (self.radius, self.radius), self.radius)
-        self.rect = pygame.Rect(self.x, self.y, 2 * self.radius, 2 * self.radius)
+        self.x = random.randrange(20, WIDTH - 20)
+        self.y = random.randrange(20, HEIGHT - 20)
 
     def change_position(self):
-        self.x = random.randrange(7, width - 7)
-        self.y = random.randrange(7, height - 7)
+        self.x = random.randrange(20, WIDTH - 20)
+        self.y = random.randrange(20, HEIGHT - 20)
+
+    def draw(self):
+        pygame.draw.circle(screen, pygame.Color("red"),
+                           (self.x + self.radius, self.y + self.radius), self.radius)
 
 
-class Snake(pygame.sprite.Sprite):
+class Snake:
     def __init__(self):
-        super().__init__(all_sprites, snake_sprites)
-        x, y = 100, 100
+        x, y = random.randrange(100, WIDTH - 100), random.randrange(100, HEIGHT - 100)
         self.position = [x, y]
-        self.width, self.height = 10, 10
-        self.body = [(x, y), (x + self.width + 1, y),
-                     (x + 2 * self.width + 2 * 1, y)]
+        self.width, self.height = 14, 14
+        self.body = [(x, y), (x + self.width, y),
+                     (x + 2 * self.width, y)]
         self.direction = 'left'
+        self.moving = True
+
+    def move(self):
+        if self.moving:
+            if self.direction == 'left':
+                self.position[0] -= SPEED
+            elif self.direction == 'right':
+                self.position[0] += SPEED
+            elif self.direction == 'down':
+                self.position[1] += SPEED
+            elif self.direction == 'up':
+                self.position[1] -= SPEED
+
+    def draw(self):
+        if self.moving:
+            self.body.insert(0, (self.position[0], self.position[1]))
+            if ball.x - 2 <= self.position[0] <= ball.x + ball.radius * 2 + 2\
+                    and ball.y - 2 <= self.position[1] <= ball.y + ball.radius * 2 + 2:
+                print(1)
+                ball.change_position()
+                global SCORE
+                SCORE += 1
+            else:
+                self.body.pop()
         for cube in self.body:
-            pygame.draw.rect(screen, 'green', (cube[0], cube[1], self.width, self.height))
-        self.rect = pygame.Rect(self.position[0], self.position[1], self.width, self.height)
-        self.image = pygame.Surface((self.width, self.height), pygame.SRCALPHA, 32)
-        pygame.draw.rect(self.image, 'green', (100, 100, 10, 10))
+            pygame.draw.rect(screen, 'blue', (cube[0], cube[1], self.width, self.height))
 
-    def update(self):
-        if self.direction == 'left':
-            self.position[0] -= SPEED
-        elif self.direction == 'right':
-            self.position[0] += SPEED
-        elif self.direction == 'down':
-            self.position[1] += SPEED
-        elif self.direction == 'up':
-            self.position[1] -= SPEED
-        self.body.insert(0, (self.position[0], self.position[1]))
-        if pygame.sprite.spritecollideany(self, ball_sprites):
-            ball.change_position()
-            global SCORE
-            SCORE += 1
-        else:
-            self.body.pop()
+    def crashed(self):
+        if self.position[0] <= 2 or self.position[0] >= WIDTH - 6 \
+                or self.position[1] <= 4 or self.position[1] >= HEIGHT - 6:
+            terminate()
+        for cube in self.body[1:]:
+            if self.position[0] == cube[0] and self.position[1] == cube[1]:
+                terminate()
 
 
-Border(2, 2, width - 2, 2)
-Border(2, height - 2, width - 2, height - 2)
-Border(2, 2, 2, height - 2)
-Border(width - 2, 2, width - 2, height - 2)
 running = True
 snake = Snake()
 ball = Ball()
@@ -98,23 +86,29 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        if keys[pygame.K_DOWN]:
+        if keys[pygame.K_DOWN] and snake.moving:
             if snake.direction in 'rightleft':
                 snake.direction = 'down'
-        if keys[pygame.K_UP]:
+        if keys[pygame.K_UP] and snake.moving:
             if snake.direction in 'rightleft':
                 snake.direction = 'up'
-        if keys[pygame.K_RIGHT]:
+        if keys[pygame.K_RIGHT] and snake.moving:
             if snake.direction in 'updown':
-                snake.move = 'right'
-        if keys[pygame.K_LEFT]:
+                snake.direction = 'right'
+        if keys[pygame.K_LEFT] and snake.moving:
             if snake.direction in 'updown':
                 snake.direction = 'left'
+        if keys[pygame.K_SPACE]:
+            snake.moving = not snake.moving
     screen.fill((200, 200, 200))
-    #horizontal_borders.draw(screen)
-    #vertical_borders.draw(screen)
-    #snake_sprites.update()
-    snake_sprites.draw(screen)
-    #ball_sprites.draw(screen)
+    pygame.draw.line(screen, 'black', (5, 5), (WIDTH - 5, 5), width=2)
+    pygame.draw.line(screen, 'black', (5, HEIGHT - 5), (WIDTH - 5, HEIGHT - 5), width=2)
+    pygame.draw.line(screen, 'black', (5, 5), (5, HEIGHT - 5), width=2)
+    pygame.draw.line(screen, 'black', (WIDTH - 5, 5), (WIDTH - 5, HEIGHT - 5), width=2)
+    ball.draw()
+    snake.move()
+    snake.draw()
+    snake.crashed()
     pygame.display.flip()
+    clock.tick(FPS)
 pygame.quit()
