@@ -12,10 +12,6 @@ SPEED = 16
 SCORE = 0
 FPS = 10
 
-all_sprites = pygame.sprite.Group()
-tiles_group = pygame.sprite.Group()
-player_group = pygame.sprite.Group()
-
 
 def load_image(name, colorkey=None):
     fullname = os.path.join("data", name)
@@ -35,6 +31,14 @@ def load_image(name, colorkey=None):
 def terminate():
     pygame.quit()
     sys.exit()
+
+
+all_sprites = pygame.sprite.Group()
+image = load_image('arrow.png')
+cursor = pygame.sprite.Sprite(all_sprites)
+cursor.image = image
+cursor.rect = cursor.image.get_rect()
+pygame.mouse.set_visible(False)
 
 
 def start_screen():
@@ -59,9 +63,29 @@ def start_screen():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 terminate()
+            elif event.type == pygame.MOUSEMOTION:
+                cursor.rect.topleft = event.pos
             elif event.type == pygame.KEYDOWN or \
                     event.type == pygame.MOUSEBUTTONDOWN:
                 return  # начинаем игру
+
+        intro_text = ["Snake", "",
+                      "made by Anna,",
+                      "with Pasha's help"]
+        fon = pygame.transform.scale(load_image('fon.jpg'), (WIDTH, HEIGHT))
+        screen.blit(fon, (0, 0))
+        font = pygame.font.Font(None, 70)
+        text_coord = 85
+        for line in intro_text:
+            string_rendered = font.render(line, True, (154, 48, 1))
+            intro_rect = string_rendered.get_rect()
+            text_coord += 10
+            intro_rect.top = text_coord
+            intro_rect.x = 10
+            text_coord += intro_rect.height
+            screen.blit(string_rendered, intro_rect)
+        if pygame.mouse.get_focused():
+            all_sprites.draw(screen)
         pygame.display.flip()
         clock.tick(FPS)
 
