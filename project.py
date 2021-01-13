@@ -60,7 +60,6 @@ class Snake:
             self.body.insert(0, (self.position[0], self.position[1]))
             if ball.x - 2 <= self.position[0] <= ball.x + ball.radius * 2 + 2\
                     and ball.y - 2 <= self.position[1] <= ball.y + ball.radius * 2 + 2:
-                print(1)
                 ball.change_position()
                 global SCORE
                 SCORE += 1
