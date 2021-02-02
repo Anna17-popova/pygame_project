@@ -51,8 +51,8 @@ pygame.mouse.set_visible(False)
 
 def start_screen():
     intro_text = ["Snake", "",
-                  "made by Anna,",
-                  "with Pasha's help"]
+                  "made by",
+                  "Anna and Pasha"]
     button = 'START'
     fon = pygame.transform.scale(load_image('fon.jpg'), (WIDTH, HEIGHT))
     screen.blit(fon, (0, 0))
@@ -84,8 +84,8 @@ def start_screen():
                     return
 
         intro_text = ["Snake", "",
-                      "made by Anna,",
-                      "with Pasha's help"]
+                      "made by",
+                       "Anna and Pasha"]
         fon = pygame.transform.scale(load_image('fon.jpg'), (WIDTH, HEIGHT))
         screen.blit(fon, (0, 0))
         font = pygame.font.Font(None, 70)
